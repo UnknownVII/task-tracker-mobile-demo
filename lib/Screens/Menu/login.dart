@@ -4,12 +4,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:task_tracker_mobile_demo/Components/alert-dialog.dart';
 import 'package:task_tracker_mobile_demo/Components/text-input-field.dart';
 import 'package:task_tracker_mobile_demo/Models/login_model.dart';
 import 'package:task_tracker_mobile_demo/Styles/text-styles.dart';
 
 import '../../Services/api_services.dart';
 import '../../Styles/button-styles.dart';
+import '../../Utilities/progress_hud.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -52,6 +54,15 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
+    return ProgressHUD(
+      child: buildUI(context),
+      inAsyncCall: isApiCallProcess,
+      opacity: 0.3,
+    );
+  }
+
+  @override
+  Widget buildUI(BuildContext context) {
     Timer _timer;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -69,7 +80,11 @@ class _LoginState extends State<Login> {
             title: Text(style: headerTextStyle, 'Login'),
             actions: <Widget>[
               IconButton(
-                onPressed: () => {},
+                onPressed: () => {
+                  setState(() {
+                    Navigator.of(context).pop();
+                  })
+                },
                 icon: Icon(
                   Icons.arrow_back,
                   size: 24,
@@ -134,46 +149,6 @@ class _LoginState extends State<Login> {
               ElevatedButton(
                   style: elevatedBtnFilled,
                   onPressed: () async {
-                    _timer = Timer(Duration(seconds: 20), () {
-                      setState(
-                        () {
-                          isApiCallProcess = false;
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return new AlertDialog(
-                                title: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.error,
-                                      color: Color(0xFFFD5066),
-                                    ),
-                                    Text(
-                                      "  Unexpected Error",
-                                      style: TextStyle(
-                                        color: Color(0xFF2E315A),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                content: Text('Connection Timeout [@_@]: Check your Internet Connection', textAlign: TextAlign.left),
-                                actions: <Widget>[
-                                  TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text("OK", style: TextStyle(color: Color(0xFF2E315A)))),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                      );
-                    });
-                    if (validateAndSave() == false) {
-                      _timer.cancel();
-                    }
                     FocusManager.instance.primaryFocus?.unfocus();
                     final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
                     if (validateAndSave()) {
@@ -187,44 +162,19 @@ class _LoginState extends State<Login> {
                             isApiCallProcess = false;
                           });
                           if (value.authToken.isNotEmpty) {
-                            _timer.cancel();
                             sharedPreferences.setString('data', requestModel.toJson().toString());
                             sharedPreferences.setString('authKey', value.authToken.toString());
                             sharedPreferences.setString('currentUser', value.message.toString());
                             sharedPreferences.setString('currentEmail', requestModel.email.toString());
+                            sharedPreferences.setString('userID', value.userID.toString());
                             globalFormKey.currentState!.reset();
-                            Fluttertoast.showToast(msg: "Login Successful");
+                            Fluttertoast.showToast(msg: "Login Successful", backgroundColor: Color(0xFF071E3D), textColor: Color(0xFFE4EBF8), toastLength: Toast.LENGTH_SHORT);
                             Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
                           } else {
-                            _timer.cancel();
                             showDialog(
                               context: context,
                               builder: (BuildContext context) {
-                                return new AlertDialog(
-                                  title: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.error,
-                                        color: Color(0xFFFD5066),
-                                      ),
-                                      Text(
-                                        "  Login",
-                                        style: TextStyle(
-                                          color: Color(0xFF2E315A),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  content: new Text(value.error),
-                                  actions: <Widget>[
-                                    TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: const Text("OK", style: TextStyle(color: Color(0xFF2E315A)))),
-                                  ],
-                                );
+                                return alertDialog(header: "Login", content: value.error);
                               },
                             );
                           }
