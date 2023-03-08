@@ -27,10 +27,13 @@ class _SharedServicesState extends State<SharedServices> {
 
   @override
   void initState() {
+
     getValidationData().whenComplete(() async {
       Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => finalEmail.isEmpty ? const MainMenu() : HomePage() ), (_) => false);
     });
+
     super.initState();
+
   }
 
   @override

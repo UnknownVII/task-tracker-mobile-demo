@@ -5,3 +5,14 @@ final TextStyle headerTextStyle = TextStyle(
   fontSize: 24,
   fontWeight: FontWeight.w900,
 );
+
+final TextStyle headerSubTextStyle = TextStyle(
+  color: Color(0xFFE4EBF8),
+  fontSize: 18,
+);
+
+final TextStyle cardTitleTextStyle = TextStyle(
+  color: Color(0xFF021632),
+  fontSize: 16,
+  fontWeight: FontWeight.w900,
+);

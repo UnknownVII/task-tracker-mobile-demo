@@ -1,11 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tags_x/flutter_tags_x.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:task_tracker_mobile_demo/Components/alert-dialog.dart';
+import 'package:task_tracker_mobile_demo/Components/complete-dialog.dart';
+import 'package:task_tracker_mobile_demo/Components/view-dialog.dart';
 import 'package:task_tracker_mobile_demo/Models/task_model.dart';
-import 'package:task_tracker_mobile_demo/Services/task_services.dart';
+import 'package:task_tracker_mobile_demo/Screens/createTask.dart';
 import 'package:task_tracker_mobile_demo/Styles/text-styles.dart';
+import 'package:intl/intl.dart';
+import '../Utilities/check_login.dart';
+import 'package:grouped_list/grouped_list.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -19,45 +24,142 @@ var _isVisible = true;
 
 class _HomePageState extends State<HomePage> {
   late int defaultChoiceIndex = 0;
-  List<String> _choicesList = ['All', 'Prioritized', 'Completed'];
 
-  late TaskRequestModel taskRequestModel;
+  List<String> _choicesList = ['Pending', 'Prioritized', 'Completed'];
+  final DateFormat formatter = DateFormat('MM-dd-yyyy');
+  var dateNow = new DateTime.now();
+  late String strDateNow;
+  List<Task> _tasks = [];
+  bool isEmpty = false;
+  bool isPrio = false;
+  String _selectedTaskId = '';
 
-  late var authHeaders;
-  List<dynamic> _userTasks = [];
+  String params = '';
+  var lengthList = 0;
+  var scrollController = ScrollController();
 
-  Future getUserData() async {
-    TaskService taskService = new TaskService();
-    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-
-    var userID = sharedPreferences.getString('userID');
-    var authKey = sharedPreferences.getString('authKey');
-
-    taskRequestModel.userID = userID!;
-    taskRequestModel.token = authKey!;
-
-    taskService.getAll(taskRequestModel).then((_userData) {
-      if (_userData.tasks != null) {
-        // print(_userData.tasks);
-        print("HERE");
-      } else {
-        print("Error: " + _userData.error.toString());
-        print("Message: " + _userData.message.toString());
-        print(_userData.tasks ?? 'No Tasks');
+  Future<void> _getData(String params) async {
+    List<dynamic> data = await getUserData(params);
+    String message = "";
+    if (data.isNotEmpty) {
+      if (data[0] is Task) {
+        _tasks = data.cast<Task>();
+      } else if (data[0] is String) {
+        message = data[0];
       }
-    });
+    }
+    if (message.isNotEmpty) {
+      setState(
+        () {
+          isEmpty = true;
+          Fluttertoast.showToast(
+            msg: message,
+            backgroundColor: Color(0xFF202342),
+            textColor: Color(0xFFE4EBF8),
+          );
+        },
+      );
+    } else {
+      setState(
+        () {
+          isEmpty = false;
+          Fluttertoast.showToast(
+            msg: 'All tasks fetched',
+            backgroundColor: Color(0xFF202342),
+            textColor: Color(0xFFE4EBF8),
+          );
+        },
+      );
+    }
   }
 
+  Future<void> _updateData(String taskID, String status) async {
+    List<dynamic> data = await updateTaskStatus(taskID, status);
+    String message = "";
+    if (data.isNotEmpty) {
+      message = data[0];
+    }
+    if (message.isNotEmpty) {
+      setState(
+        () {
+          Fluttertoast.showToast(
+            msg: message,
+            backgroundColor: Color(0xFF202342),
+            textColor: Color(0xFFE4EBF8),
+          );
+        },
+      );
+    } else {
+      setState(
+        () {
+          Fluttertoast.showToast(
+            msg: 'Something went wrong',
+            backgroundColor: Color(0xFF202342),
+            textColor: Color(0xFFE4EBF8),
+          );
+        },
+      );
+    }
+  }
+
+  Future<void> _updateDataTask(String taskID, bool priority) async {
+    List<dynamic> data = await updateTaskPriority(taskID, priority);
+    String message = "";
+    if (data.isNotEmpty) {
+      message = data[0];
+    }
+    if (message.isNotEmpty) {
+      setState(
+        () {
+          Fluttertoast.showToast(
+            msg: message,
+            backgroundColor: Color(0xFF202342),
+            textColor: Color(0xFFE4EBF8),
+          );
+        },
+      );
+    } else {
+      setState(
+        () {
+          Fluttertoast.showToast(
+            msg: 'Something went wrong',
+            backgroundColor: Color(0xFF202342),
+            textColor: Color(0xFFE4EBF8),
+          );
+        },
+      );
+    }
+  }
 
   @override
-  void initState() {
-    // TODO: implement initState
-    taskRequestModel = new TaskRequestModel(userID: '', token: '');
+  initState() {
     super.initState();
-  }
-
-  void dispose() {
-    super.dispose();
+    scrollController.addListener(() async {
+      if (_tasks.length <= 5) {
+        setState(() {
+          _isVisible = true;
+        });
+      } else {
+        if (scrollController.position.atEdge) {
+          if (scrollController.position.pixels > 0) {
+            if (_isVisible) {
+              setState(() {
+                _isVisible = false;
+              });
+            }
+          }
+        } else {
+          if (!_isVisible) {
+            setState(() {
+              _isVisible = true;
+            });
+          }
+        }
+      }
+    });
+    params = "status=Incomplete";
+    _getData(params);
+    strDateNow = formatter.format(dateNow);
   }
 
   @override
@@ -65,78 +167,312 @@ class _HomePageState extends State<HomePage> {
     return Stack(
       children: <Widget>[
         Scaffold(
-          backgroundColor: Color(0xFF071E3D),
-          body: Column(
-            children: [
-              SizedBox(
-                height: 160,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 26,
-                  ),
-                  Wrap(
-                    spacing: 8,
-                    children: List.generate(_choicesList.length, (index) {
-                      return ChoiceChip(
-                        labelPadding: defaultChoiceIndex != index ? EdgeInsets.all(0.0) : EdgeInsets.all(2.0),
-                        label: Text(
-                          _choicesList[index],
-                          style: defaultChoiceIndex == index ? TextStyle(color: Color(0xFF021632), fontSize: 14, fontWeight: FontWeight.w700) : TextStyle(color: Color(0xFFE4EBF8), fontSize: 14),
-                        ),
-                        shape: defaultChoiceIndex != index ? StadiumBorder(side: BorderSide(color: Color(0xFFE4EBF8), width: 2, strokeAlign: StrokeAlign.inside)) : StadiumBorder(),
-                        selected: defaultChoiceIndex == index,
-                        selectedColor: Color(0xFFE4EBF8),
-                        onSelected: (value) {
-                          setState(() {
-                            defaultChoiceIndex = value ? index : defaultChoiceIndex;
-                          });
-                        },
-                        // backgroundColor: color,
-                        elevation: 1,
-                        padding: EdgeInsets.symmetric(horizontal: 15.0),
-                        backgroundColor: Color(0xFF071E3D),
-                      );
-                    }),
-                  ),
-                ],
-              ),
-              Container(
-                color: Colors.white,
-                child: Column(
+          backgroundColor: Color(0xFF577399),
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 160,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    TextButton(
-                      onPressed: () async {
-                        getUserData();
-                      },
-                      child: Container(
-                        width: 70,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              '  Test',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Color(0xFF202342),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    SizedBox(
+                      width: 26,
+                    ),
+                    Wrap(
+                      spacing: 8,
+                      children: List.generate(_choicesList.length, (index) {
+                        return ChoiceChip(
+                          labelPadding: defaultChoiceIndex != index ? EdgeInsets.all(0.0) : EdgeInsets.all(2.0),
+                          label: Text(
+                            _choicesList[index],
+                            style: defaultChoiceIndex == index ? TextStyle(color: Color(0xFF021632), fontSize: 14, fontWeight: FontWeight.w700) : TextStyle(color: Color(0xFFE4EBF8), fontSize: 14),
+                          ),
+                          shape: defaultChoiceIndex != index ? StadiumBorder(side: BorderSide(color: Color(0xFFE4EBF8), width: 2, strokeAlign: StrokeAlign.inside)) : StadiumBorder(),
+                          selected: defaultChoiceIndex == index,
+                          selectedColor: Color(0xFFE4EBF8),
+                          onSelected: (value) {
+                            setState(
+                              () {
+                                defaultChoiceIndex = value ? index : defaultChoiceIndex;
+                                switch (defaultChoiceIndex) {
+                                  case 0:
+                                    setState(
+                                      () {
+                                        _tasks = [];
+                                        isEmpty = false;
+                                        _selectedTaskId = '';
+                                        params = "status=Incomplete";
+                                        _getData(params);
+                                        if (_tasks.length <= 5) {
+                                          _isVisible = true;
+                                        }
+                                        ;
+                                      },
+                                    );
+                                    break;
+                                  case 1:
+                                    setState(
+                                      () {
+                                        _tasks = [];
+                                        isEmpty = false;
+                                        _selectedTaskId = '';
+                                        params = "prioritize=true&status=Incomplete";
+                                        _getData(params);
+                                        if (_tasks.length <= 5) {
+                                          _isVisible = true;
+                                        }
+                                        ;
+                                      },
+                                    );
+                                    break;
+                                  case 2:
+                                    setState(
+                                      () {
+                                        _tasks = [];
+                                        isEmpty = false;
+                                        _selectedTaskId = '';
+                                        params = "status=Complete";
+                                        _getData(params);
+                                        if (_tasks.length <= 5) {
+                                          _isVisible = true;
+                                        }
+                                        ;
+                                      },
+                                    );
+                                    break;
+                                  default:
+                                    setState(
+                                      () {
+                                        isEmpty = false;
+                                        _selectedTaskId = '';
+                                        params = "status=Incomplete";
+                                        _getData(params);
+                                        if (_tasks.length <= 5) {
+                                          _isVisible = true;
+                                        }
+                                        ;
+                                      },
+                                    );
+                                }
+                                ;
+                              },
+                            );
+                          },
+                          // backgroundColor: color,
+                          elevation: 1,
+                          padding: EdgeInsets.symmetric(horizontal: 15.0),
+                          backgroundColor: Color(0xFF577399),
+                        );
+                      }),
                     ),
                   ],
                 ),
-              )
-            ],
+                SizedBox(
+                  height: 15,
+                ),
+                Container(
+                  margin: EdgeInsets.zero,
+                  padding: EdgeInsets.zero,
+                  width: double.infinity,
+                  height: MediaQuery.of(context).size.height - 223,
+                  // color: Colors.white,
+                  child: FutureBuilder<List<dynamic>>(builder: (context, snapshot) {
+                    this.lengthList = _tasks.length;
+                    return _tasks.length != 0
+                        ? RefreshIndicator(
+                            color: Theme.of(context).primaryColor,
+                            onRefresh: () {
+                              return _getData(params);
+                            },
+                            child: GroupedListView<dynamic, String>(
+                              physics: AlwaysScrollableScrollPhysics(),
+                              padding: EdgeInsets.zero,
+                              elements: _tasks,
+                              groupBy: (task) => formatter.format(task.dueDate),
+                              groupComparator: (value1, value2) {
+                                if (value1 == strDateNow) {
+                                  return 1; // Today's date is first
+                                }
+                                if (value2 == strDateNow) {
+                                  return -1; // Today's date is second
+                                }
+                                return value2.compareTo(value1); // Sort by descending date order
+                              },
+                              itemComparator: (item1, item2) => item1.title.compareTo(item2.title),
+                              order: GroupedListOrder.DESC,
+                              useStickyGroupSeparators: false,
+                              controller: scrollController,
+                              groupSeparatorBuilder: (String value) => Padding(
+                                padding: const EdgeInsets.fromLTRB(15.0, 8.0, 15.0, 8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    if (value == strDateNow) ...[
+                                      Text(
+                                        'Today',
+                                        textAlign: TextAlign.center,
+                                        style: headerTextStyle,
+                                      ),
+                                      Text(
+                                        value,
+                                        textAlign: TextAlign.center,
+                                        style: headerSubTextStyle,
+                                      ),
+                                    ],
+                                    if (value != strDateNow)
+                                      Text(
+                                        value,
+                                        textAlign: TextAlign.center,
+                                        style: headerSubTextStyle,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              indexedItemBuilder: (c, task, count) {
+                                String date = formatter.format(task.dueDate);
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8.5, horizontal: 15.0),
+                                  child: Dismissible(
+                                    key: Key(task.id.toString()),
+                                    direction: DismissDirection.endToStart,
+                                    child: Card(
+                                      margin: EdgeInsets.zero,
+                                      child: ClipPath(
+                                        child: InkWell(
+                                          onTap: () => {
+                                            showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return viewDialog(
+                                                      userID: taskGetAllRequestModel.userID.toString(),
+                                                      taskID: task.id,
+                                                      title: task.title,
+                                                      description: task.description,
+                                                      status: task.status.toString(),
+                                                      dueDate: date,
+                                                      startTime: task.startTime,
+                                                      endTime: task.endTime,
+                                                      prioritize: task.prioritize);
+                                                })
+                                          },
+                                          onLongPress: () => {
+                                            if (task.status != 'Complete')
+                                              {
+                                                _updateDataTask(task.id, task.prioritize == true ? false : true),
+                                                setState(() {
+                                                  _selectedTaskId = task.id;
+                                                  task.prioritize = !task.prioritize;
+                                                  isPrio = task.prioritize;
+                                                })
+                                              }
+                                            else
+                                              {
+                                                Fluttertoast.showToast(
+                                                  msg: "Task is already Completed",
+                                                  backgroundColor: Color(0xFF202342),
+                                                  textColor: Color(0xFFE4EBF8),
+                                                ),
+                                              }
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              border: Border(
+                                                left: task.id == _selectedTaskId
+                                                    ? isPrio
+                                                        ? BorderSide(color: Color(0xFF21E6C1), width: 8)
+                                                        : BorderSide()
+                                                    : task.prioritize
+                                                        ? BorderSide(color: Color(0xFF21E6C1), width: 8)
+                                                        : BorderSide(),
+                                              ),
+                                            ),
+                                            child: ListTile(
+                                              title: Text(
+                                                task.title,
+                                                style: cardTitleTextStyle,
+                                              ),
+                                              subtitle: Text(
+                                                date,
+                                              ),
+                                              tileColor: Color(0xFFE4EBF8),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    background: Container(
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF21E6C1),
+                                      ),
+                                    ),
+                                    onDismissed: (direction) {
+                                      _tasks.remove(task);
+                                      setState(() {
+                                        if (_tasks.length <= 5) {
+                                          setState(
+                                            () {
+                                              _isVisible = true;
+                                            },
+                                          );
+                                        }
+                                      });
+                                    },
+                                    confirmDismiss: (DismissDirection direction) async {
+                                      return await showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return confirmDialog(
+                                              userID: taskGetAllRequestModel.userID.toString(),
+                                              taskID: task.id,
+                                              title: task.title,
+                                              status: task.status.toString(),
+                                              dueDate: date,
+                                              startTime: task.startTime,
+                                              endTime: task.endTime,
+                                              prioritize: task.prioritize);
+                                        },
+                                      ).then((value) {
+                                        if (value is bool) {
+                                          if (value == true) {
+                                            _updateData(task.id, 'Complete');
+                                          }
+                                          return value;
+                                        }
+                                        if (value is String) {
+                                          return true;
+                                        }
+                                      });
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          )
+                        : isEmpty == false
+                            ? Center(
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE4EBF8)),
+                                  backgroundColor: Theme.of(context).primaryColor,
+                                ),
+                              )
+                            : Center(
+                                child: Text(
+                                'No Incomplete Task',
+                                style: headerTextStyle,
+                              ));
+                  }),
+                )
+              ],
+            ),
           ),
           floatingActionButton: Visibility(
             visible: _isVisible,
             child: FloatingActionButton(
               onPressed: () {
-                // Navigator.push(context, MaterialPageRoute(builder: (context) => CreateNewContact()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CreateTask()));
               },
               child: Icon(
                 Icons.add,
@@ -250,50 +586,30 @@ class _HomePageState extends State<HomePage> {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return new AlertDialog(
-              title: const Text("Logout",
-                  style: TextStyle(
-                    color: Color(0xFF5B3415),
-                    fontWeight: FontWeight.bold,
-                  )),
-              content: const Text("Are you sure to Logout?"),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () async {
-                    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-                    sharedPreferences.remove('data');
-                    sharedPreferences.remove('authKey');
-                    sharedPreferences.remove('currentUser');
-                    sharedPreferences.remove('currentEmail');
-                    sharedPreferences.remove('userID');
-                    Fluttertoast.showToast(
-                      msg: "Logged out Successfully",
-                      backgroundColor: Color(0xFF202342),
-                      textColor: Color(0xFFE4EBF8),
-                    );
-                    Navigator.pushNamedAndRemoveUntil(context, '/menu', (_) => false);
-                  },
-                  child: const Text("LOGOUT", style: TextStyle(color: Color(0xFFFD5066))),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
-                  child: Text(
-                    "CANCEL",
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                ),
-              ],
-            );
+            return alertDialog(content: 'Are you sure you want to log out?', header: 'Logout', choice: true);
+          },
+        ).then(
+          (value) async {
+            if (value) {
+              final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+              sharedPreferences.remove('data');
+              sharedPreferences.remove('authKey');
+              sharedPreferences.remove('currentUser');
+              sharedPreferences.remove('currentEmail');
+              sharedPreferences.remove('userID');
+              Fluttertoast.showToast(
+                msg: "Logged out Successfully",
+                backgroundColor: Color(0xFF202342),
+                textColor: Color(0xFFE4EBF8),
+              );
+              Navigator.pushNamedAndRemoveUntil(context, '/menu', (_) => false);
+            }
           },
         );
         break;
       case 3:
         setState(() {
-          Fluttertoast.showToast(msg: "App ver.0.2.1-alpha", backgroundColor: Color(0xFF202342), textColor: Color(0xFFE4EBF8), toastLength: Toast.LENGTH_SHORT);
+          Fluttertoast.showToast(msg: "App ver.1.0.0-alpha", backgroundColor: Color(0xFF202342), textColor: Color(0xFFE4EBF8), toastLength: Toast.LENGTH_SHORT);
         });
     }
   }

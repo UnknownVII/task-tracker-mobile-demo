@@ -14,6 +14,8 @@ class textFormField extends StatelessWidget {
   final String? errorText;
   final bool obscure;
   final bool enabled;
+  final int? maxLine;
+  final int? maxLength;
 
   textFormField(
       {Key? key,
@@ -27,6 +29,8 @@ class textFormField extends StatelessWidget {
       this.suffix,
       this.prefix,
       this.enabled = true,
+      this.maxLength,
+      this.maxLine,
       required this.keyboardAction,
       required this.onSaved,
       this.obscure = false})
@@ -34,50 +38,51 @@ class textFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 4),
-      child: TextFormField(
-        focusNode: focusNode,
-        onTap: onTap,
-        keyboardType: keyboardType,
-        textInputAction: keyboardAction,
-        onSaved: onSaved,
-        validator: validator,
-        obscureText: obscure,
-        decoration: new InputDecoration(
-          filled: true,
-          fillColor: Color(0xFFE4EBF8),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Theme.of(context).primaryColor.withOpacity(0.2),
-            ),
+    return TextFormField(
+      focusNode: focusNode,
+      onTap: onTap,
+      keyboardType: keyboardType,
+      textInputAction: keyboardAction,
+      onSaved: onSaved,
+      validator: validator,
+      obscureText: obscure,
+      decoration: new InputDecoration(
+        filled: true,
+        fillColor: Color(0xFFE4EBF8),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor.withOpacity(0.2),
           ),
-          disabledBorder: InputBorder.none,
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Theme.of(context).primaryColor,
-            ),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Color(0xFFFD5066),
-            ),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Color(0xFFFD5066),
-            ),
-          ),
-          contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
-          labelText: label,
-          labelStyle: TextStyle(
-            color: focusNode.hasFocus ? Color(0xFF857A7A) : Colors.grey,
-            fontSize: 18,
-          ),
-          prefixIcon: prefix,
-          suffixIcon: suffix
         ),
+        disabledBorder: InputBorder.none,
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Color(0xFFFD5066),
+          ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Color(0xFFFD5066),
+          ),
+        ),
+        // contentPadding: EdgeInsets.only(left: 0, bottom: 11, top: 11, right: 0),
+        labelText: label,
+        labelStyle: TextStyle(
+          color: focusNode.hasFocus ? Color(0xFF021632) : Colors.grey,
+          fontSize: 18,
+          height: 3,
+        ),
+        prefixIcon: prefix,
+        suffixIcon: suffix,
+        counterStyle: TextStyle(color: Color(0xFFE4EBF8), fontSize: 16),
       ),
+      maxLength: maxLength,
+      maxLines: maxLine,
     );
   }
 }

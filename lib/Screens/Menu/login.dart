@@ -91,99 +91,109 @@ class _LoginState extends State<Login> {
                   color: Color(0xFFE4EBF8),
                 ),
               ),
+              SizedBox(
+                width: 18,
+              )
             ],
             backgroundColor: Colors.transparent,
             elevation: 0.0,
           ),
         ),
-        body: Center(
-          child: Column(
-            children: [
-              Form(
-                  key: globalFormKey,
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: 84,
-                        width: 340,
-                        child: textFormField(
-                          focusNode: emailFocus,
-                          onTap: _requestFocusEmail,
-                          keyboardType: TextInputType.emailAddress,
-                          keyboardAction: TextInputAction.next,
-                          onSaved: (input) => requestModel.email = input!,
-                          validator: (input) => !input!.contains("@") ? "Email Address invalid" : null,
-                          label: 'Email',
-                          prefix: Icon(Icons.email, color: Theme.of(context).primaryColor),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 84,
-                        width: 340,
-                        child: textFormField(
-                          focusNode: passwordFocus,
-                          onTap: _requestFocusPassword,
-                          keyboardType: TextInputType.text,
-                          keyboardAction: TextInputAction.done,
-                          obscure: hidePassword,
-                          onSaved: (input) => requestModel.password = input!,
-                          validator: (input) => input!.length < 6 ? "Password is less than 6 characters" : null,
-                          label: 'Password',
-                          prefix: Icon(Icons.lock, color: Theme.of(context).primaryColor),
-                          suffix: IconButton(
-                            onPressed: () {
-                              setState(() {
-                                hidePassword = !hidePassword;
-                              });
-                            },
-                            color: Theme.of(context).primaryColor.withOpacity(0.5),
-                            icon: Icon(hidePassword ? Icons.visibility : Icons.visibility_off),
+        body: SingleChildScrollView(
+          child: Center(
+            child: Column(
+              children: [
+                Form(
+                    key: globalFormKey,
+                    child: Container(
+                      width: 340,
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            height: 80,
+                            child: textFormField(
+                              focusNode: emailFocus,
+                              onTap: _requestFocusEmail,
+                              keyboardType: TextInputType.emailAddress,
+                              keyboardAction: TextInputAction.next,
+                              onSaved: (input) => requestModel.email = input!,
+                              validator: (input) => !input!.contains("@") ? "Email Address invalid" : null,
+                              label: 'Email',
+                              prefix: Icon(Icons.email, color: Theme.of(context).primaryColor),
+                            ),
                           ),
-                        ),
+                          SizedBox(
+                            height: 80,
+                            child: textFormField(
+                              focusNode: passwordFocus,
+                              onTap: _requestFocusPassword,
+                              keyboardType: TextInputType.text,
+                              keyboardAction: TextInputAction.done,
+                              obscure: hidePassword,
+                              onSaved: (input) => requestModel.password = input!,
+                              validator: (input) => input!.length < 6 ? "Password is less than 6 characters" : null,
+                              label: 'Password',
+                              prefix: Icon(Icons.lock, color: Theme.of(context).primaryColor),
+                              suffix: IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    hidePassword = !hidePassword;
+                                  });
+                                },
+                                color: Theme.of(context).primaryColor.withOpacity(0.5),
+                                icon: Icon(hidePassword ? Icons.visibility : Icons.visibility_off),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  )),
-              SizedBox(
-                height: 7,
-              ),
-              ElevatedButton(
-                  style: elevatedBtnFilled,
-                  onPressed: () async {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-                    if (validateAndSave()) {
-                      setState(() {
-                        isApiCallProcess = true;
-                      });
-                      LoginService apiService = new LoginService();
-                      apiService.login(requestModel).then(
-                        (value) {
-                          setState(() {
-                            isApiCallProcess = false;
-                          });
-                          if (value.authToken.isNotEmpty) {
-                            sharedPreferences.setString('data', requestModel.toJson().toString());
-                            sharedPreferences.setString('authKey', value.authToken.toString());
-                            sharedPreferences.setString('currentUser', value.message.toString());
-                            sharedPreferences.setString('currentEmail', requestModel.email.toString());
-                            sharedPreferences.setString('userID', value.userID.toString());
-                            globalFormKey.currentState!.reset();
-                            Fluttertoast.showToast(msg: "Login Successful", backgroundColor: Color(0xFF071E3D), textColor: Color(0xFFE4EBF8), toastLength: Toast.LENGTH_SHORT);
-                            Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
-                          } else {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return alertDialog(header: "Login", content: value.error);
-                              },
-                            );
-                          }
-                        },
-                      );
-                    }
-                  },
-                  child: Text(style: btnTextStyleDark, 'Login')),
-            ],
+                    )),
+                SizedBox(
+                  height: 7,
+                ),
+                ElevatedButton(
+                    style: elevatedBtnFilled,
+                    onPressed: () async {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+                      if (validateAndSave()) {
+                        setState(() {
+                          isApiCallProcess = true;
+                        });
+                        LoginService apiService = new LoginService();
+                        apiService.login(requestModel).then(
+                          (value) {
+                            setState(() {
+                              isApiCallProcess = false;
+                            });
+                            if (value.authToken.isNotEmpty) {
+                              sharedPreferences.setString('data', requestModel.toJson().toString());
+                              sharedPreferences.setString('authKey', value.authToken.toString());
+                              sharedPreferences.setString('currentUser', value.message.toString());
+                              sharedPreferences.setString('currentEmail', requestModel.email.toString());
+                              sharedPreferences.setString('userID', value.userID.toString());
+                              globalFormKey.currentState!.reset();
+                              Fluttertoast.showToast(msg: "Login Successful", backgroundColor: Color(0xFF071E3D), textColor: Color(0xFFE4EBF8), toastLength: Toast.LENGTH_SHORT);
+                              Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
+                            } else {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return alertDialog(
+                                    header: "Login",
+                                    content: value.error,
+                                    choice: false,
+                                  );
+                                },
+                              );
+                            }
+                          },
+                        );
+                      }
+                    },
+                    child: Text(style: btnTextStyleDark, 'Login')),
+              ],
+            ),
           ),
         ),
       ),
