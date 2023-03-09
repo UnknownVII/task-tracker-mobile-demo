@@ -1,11 +1,7 @@
 import 'dart:ui';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:task_tracker_mobile_demo/Utilities/check_login.dart';
-
-import '../Styles/button-styles.dart';
 import 'alert-dialog.dart';
 
 Future<void> _editData(String taskID) async {

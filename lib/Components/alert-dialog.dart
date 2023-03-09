@@ -1,6 +1,4 @@
 import 'dart:ui';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class alertDialog extends StatelessWidget {
@@ -39,7 +37,7 @@ class alertDialog extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(context).pop(true);
                 },
-                child: const Text("OK", style: TextStyle(color: Color(0xFF021632)))),
+                child: const Text("OK", style: TextStyle(color: Color(0xFF021632), fontWeight: FontWeight.bold))),
           if (choice)
             TextButton(
                 onPressed: () {

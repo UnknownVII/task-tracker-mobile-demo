@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -61,7 +60,6 @@ class _LoginState extends State<Login> {
     );
   }
 
-  @override
   Widget buildUI(BuildContext context) {
     Timer _timer;
     return GestureDetector(
@@ -112,9 +110,11 @@ class _LoginState extends State<Login> {
                           SizedBox(
                             height: 80,
                             child: textFormField(
+                              readOnly: false,
                               focusNode: emailFocus,
                               onTap: _requestFocusEmail,
                               keyboardType: TextInputType.emailAddress,
+                              textCapitalization: TextCapitalization.none,
                               keyboardAction: TextInputAction.next,
                               onSaved: (input) => requestModel.email = input!,
                               validator: (input) => !input!.contains("@") ? "Email Address invalid" : null,
@@ -125,9 +125,11 @@ class _LoginState extends State<Login> {
                           SizedBox(
                             height: 80,
                             child: textFormField(
+                              readOnly: false,
                               focusNode: passwordFocus,
                               onTap: _requestFocusPassword,
                               keyboardType: TextInputType.text,
+                              textCapitalization: TextCapitalization.none,
                               keyboardAction: TextInputAction.done,
                               obscure: hidePassword,
                               onSaved: (input) => requestModel.password = input!,
@@ -143,6 +145,7 @@ class _LoginState extends State<Login> {
                                 color: Theme.of(context).primaryColor.withOpacity(0.5),
                                 icon: Icon(hidePassword ? Icons.visibility : Icons.visibility_off),
                               ),
+                              maxLine: 1,
                             ),
                           ),
                         ],

@@ -64,7 +64,7 @@ Future deleteTaskStatus(String taskID) async {
   return value;
 }
 
-Future createTask(String title, String, description, String dueDate, String startTime, String endTime, bool prioritize) async {
+Future createTask(String title, String description, String dueDate, String startTime, String endTime, bool prioritize) async {
   List<dynamic> value = [];
   TaskService taskService = new TaskService();
   final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();

@@ -42,6 +42,8 @@ dependencies:
   flutter_tags_x:
   intl:
   grouped_list:
+  syncfusion_flutter_datepicker: "20.4.44"
+  flutter_time_picker_spinner: ^2.0.0
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
@@ -49,7 +51,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  flutter_switch:
   flutter_native_splash:
 flutter_native_splash:
   image: "assets/app_splash_foreground.png"

@@ -64,7 +64,7 @@ class TaskService {
 
     try {
       final response = await client
-          .put(Uri.parse('https://task-tracker-mobile-api.vercel.app/task/create/' + userID + "/new-task"),
+          .post(Uri.parse('https://task-tracker-mobile-api.vercel.app/task/create/' + userID + "/new-task"),
           headers: authHeaders,
           body: jsonEncode(
             <String, dynamic>{

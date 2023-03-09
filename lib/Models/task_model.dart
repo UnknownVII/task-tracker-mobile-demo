@@ -1,5 +1,3 @@
-import 'package:flutter/cupertino.dart';
-
 class TaskResponseModel {
   TaskResponseModel({
     required this.tasks,
@@ -143,6 +141,7 @@ class TaskDeleteRequestModel {
     return map;
   }
 }
+
 class TaskUpdateRequestModel {
   String userID;
   String taskID;

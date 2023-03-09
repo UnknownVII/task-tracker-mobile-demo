@@ -9,6 +9,7 @@ import 'package:task_tracker_mobile_demo/Models/task_model.dart';
 import 'package:task_tracker_mobile_demo/Screens/createTask.dart';
 import 'package:task_tracker_mobile_demo/Styles/text-styles.dart';
 import 'package:intl/intl.dart';
+import '../Styles/button-styles.dart';
 import '../Utilities/check_login.dart';
 import 'package:grouped_list/grouped_list.dart';
 
@@ -24,6 +25,7 @@ var _isVisible = true;
 
 class _HomePageState extends State<HomePage> {
   late int defaultChoiceIndex = 0;
+  DateTime? lastPressed;
 
   List<String> _choicesList = ['Pending', 'Prioritized', 'Completed'];
   final DateFormat formatter = DateFormat('MM-dd-yyyy');
@@ -33,19 +35,22 @@ class _HomePageState extends State<HomePage> {
   bool isEmpty = false;
   bool isPrio = false;
   String _selectedTaskId = '';
-
+  String message = "";
   String params = '';
   var lengthList = 0;
   var scrollController = ScrollController();
 
   Future<void> _getData(String params) async {
     List<dynamic> data = await getUserData(params);
-    String message = "";
+    message = "";
     if (data.isNotEmpty) {
       if (data[0] is Task) {
         _tasks = data.cast<Task>();
       } else if (data[0] is String) {
-        message = data[0];
+        setState(() {
+          message = data[0];
+          print(message);
+        });
       }
     }
     if (message.isNotEmpty) {
@@ -164,401 +169,444 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        Scaffold(
-          backgroundColor: Color(0xFF577399),
-          body: SingleChildScrollView(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 160,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 26,
-                    ),
-                    Wrap(
-                      spacing: 8,
-                      children: List.generate(_choicesList.length, (index) {
-                        return ChoiceChip(
-                          labelPadding: defaultChoiceIndex != index ? EdgeInsets.all(0.0) : EdgeInsets.all(2.0),
-                          label: Text(
-                            _choicesList[index],
-                            style: defaultChoiceIndex == index ? TextStyle(color: Color(0xFF021632), fontSize: 14, fontWeight: FontWeight.w700) : TextStyle(color: Color(0xFFE4EBF8), fontSize: 14),
-                          ),
-                          shape: defaultChoiceIndex != index ? StadiumBorder(side: BorderSide(color: Color(0xFFE4EBF8), width: 2, strokeAlign: StrokeAlign.inside)) : StadiumBorder(),
-                          selected: defaultChoiceIndex == index,
-                          selectedColor: Color(0xFFE4EBF8),
-                          onSelected: (value) {
-                            setState(
-                              () {
-                                defaultChoiceIndex = value ? index : defaultChoiceIndex;
-                                switch (defaultChoiceIndex) {
-                                  case 0:
-                                    setState(
-                                      () {
-                                        _tasks = [];
-                                        isEmpty = false;
-                                        _selectedTaskId = '';
-                                        params = "status=Incomplete";
-                                        _getData(params);
-                                        if (_tasks.length <= 5) {
-                                          _isVisible = true;
-                                        }
-                                        ;
-                                      },
-                                    );
-                                    break;
-                                  case 1:
-                                    setState(
-                                      () {
-                                        _tasks = [];
-                                        isEmpty = false;
-                                        _selectedTaskId = '';
-                                        params = "prioritize=true&status=Incomplete";
-                                        _getData(params);
-                                        if (_tasks.length <= 5) {
-                                          _isVisible = true;
-                                        }
-                                        ;
-                                      },
-                                    );
-                                    break;
-                                  case 2:
-                                    setState(
-                                      () {
-                                        _tasks = [];
-                                        isEmpty = false;
-                                        _selectedTaskId = '';
-                                        params = "status=Complete";
-                                        _getData(params);
-                                        if (_tasks.length <= 5) {
-                                          _isVisible = true;
-                                        }
-                                        ;
-                                      },
-                                    );
-                                    break;
-                                  default:
-                                    setState(
-                                      () {
-                                        isEmpty = false;
-                                        _selectedTaskId = '';
-                                        params = "status=Incomplete";
-                                        _getData(params);
-                                        if (_tasks.length <= 5) {
-                                          _isVisible = true;
-                                        }
-                                        ;
-                                      },
-                                    );
-                                }
-                                ;
-                              },
-                            );
-                          },
-                          // backgroundColor: color,
-                          elevation: 1,
-                          padding: EdgeInsets.symmetric(horizontal: 15.0),
-                          backgroundColor: Color(0xFF577399),
-                        );
-                      }),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 15,
-                ),
-                Container(
-                  margin: EdgeInsets.zero,
-                  padding: EdgeInsets.zero,
-                  width: double.infinity,
-                  height: MediaQuery.of(context).size.height - 223,
-                  // color: Colors.white,
-                  child: FutureBuilder<List<dynamic>>(builder: (context, snapshot) {
-                    this.lengthList = _tasks.length;
-                    return _tasks.length != 0
-                        ? RefreshIndicator(
-                            color: Theme.of(context).primaryColor,
-                            onRefresh: () {
-                              return _getData(params);
+    return WillPopScope(onWillPop: () async {
+      final now = DateTime.now();
+      final maxDuration = const Duration(seconds: 1);
+      final isWarning = lastPressed == null || now.difference(lastPressed!) > maxDuration;
+      if (isWarning) {
+        lastPressed = DateTime.now();
+        Fluttertoast.showToast(msg: "Double Tap to Close App", backgroundColor: Color(0xFF071E3D), textColor: Color(0xFFE4EBF8), toastLength: Toast.LENGTH_SHORT);
+        return false;
+      } else {
+        Fluttertoast.cancel();
+        return true;
+      }
+    },
+
+      child: Stack(
+        children: <Widget>[
+          Scaffold(
+            backgroundColor: Color(0xFF577399),
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 160,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 26,
+                      ),
+                      Wrap(
+                        spacing: 8,
+                        children: List.generate(_choicesList.length, (index) {
+                          return ChoiceChip(
+                            labelPadding: defaultChoiceIndex != index ? EdgeInsets.all(0.0) : EdgeInsets.all(2.0),
+                            label: Text(
+                              _choicesList[index],
+                              style: defaultChoiceIndex == index ? TextStyle(color: Color(0xFF021632), fontSize: 14, fontWeight: FontWeight.w700) : TextStyle(color: Color(0xFFE4EBF8), fontSize: 14),
+                            ),
+                            shape: defaultChoiceIndex != index ? StadiumBorder(side: BorderSide(color: Color(0xFFE4EBF8), width: 2, strokeAlign: StrokeAlign.inside)) : StadiumBorder(),
+                            selected: defaultChoiceIndex == index,
+                            selectedColor: Color(0xFFE4EBF8),
+                            onSelected: (value) {
+                              setState(
+                                () {
+                                  defaultChoiceIndex = value ? index : defaultChoiceIndex;
+                                  switch (defaultChoiceIndex) {
+                                    case 0:
+                                      setState(
+                                        () {
+                                          _tasks = [];
+                                          isEmpty = false;
+                                          _selectedTaskId = '';
+                                          params = "status=Incomplete";
+                                          _getData(params);
+                                          if (_tasks.length <= 5) {
+                                            _isVisible = true;
+                                          }
+                                          ;
+                                        },
+                                      );
+                                      break;
+                                    case 1:
+                                      setState(
+                                        () {
+                                          _tasks = [];
+                                          isEmpty = false;
+                                          _selectedTaskId = '';
+                                          params = "prioritize=true&status=Incomplete";
+                                          _getData(params);
+                                          if (_tasks.length <= 5) {
+                                            _isVisible = true;
+                                          }
+                                          ;
+                                        },
+                                      );
+                                      break;
+                                    case 2:
+                                      setState(
+                                        () {
+                                          _tasks = [];
+                                          isEmpty = false;
+                                          _selectedTaskId = '';
+                                          params = "status=Complete";
+                                          _getData(params);
+                                          if (_tasks.length <= 5) {
+                                            _isVisible = true;
+                                          }
+                                          ;
+                                        },
+                                      );
+                                      break;
+                                    default:
+                                      setState(
+                                        () {
+                                          isEmpty = false;
+                                          _selectedTaskId = '';
+                                          params = "status=Incomplete";
+                                          _getData(params);
+                                          if (_tasks.length <= 5) {
+                                            _isVisible = true;
+                                          }
+                                          ;
+                                        },
+                                      );
+                                  }
+                                  ;
+                                },
+                              );
                             },
-                            child: GroupedListView<dynamic, String>(
-                              physics: AlwaysScrollableScrollPhysics(),
-                              padding: EdgeInsets.zero,
-                              elements: _tasks,
-                              groupBy: (task) => formatter.format(task.dueDate),
-                              groupComparator: (value1, value2) {
-                                if (value1 == strDateNow) {
-                                  return 1; // Today's date is first
-                                }
-                                if (value2 == strDateNow) {
-                                  return -1; // Today's date is second
-                                }
-                                return value2.compareTo(value1); // Sort by descending date order
-                              },
-                              itemComparator: (item1, item2) => item1.title.compareTo(item2.title),
-                              order: GroupedListOrder.DESC,
-                              useStickyGroupSeparators: false,
-                              controller: scrollController,
-                              groupSeparatorBuilder: (String value) => Padding(
-                                padding: const EdgeInsets.fromLTRB(15.0, 8.0, 15.0, 8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    if (value == strDateNow) ...[
-                                      Text(
-                                        'Today',
-                                        textAlign: TextAlign.center,
-                                        style: headerTextStyle,
-                                      ),
-                                      Text(
-                                        value,
-                                        textAlign: TextAlign.center,
-                                        style: headerSubTextStyle,
-                                      ),
-                                    ],
-                                    if (value != strDateNow)
-                                      Text(
-                                        value,
-                                        textAlign: TextAlign.center,
-                                        style: headerSubTextStyle,
-                                      ),
-                                  ],
-                                ),
-                              ),
-                              indexedItemBuilder: (c, task, count) {
-                                String date = formatter.format(task.dueDate);
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 8.5, horizontal: 15.0),
-                                  child: Dismissible(
-                                    key: Key(task.id.toString()),
-                                    direction: DismissDirection.endToStart,
-                                    child: Card(
-                                      margin: EdgeInsets.zero,
-                                      child: ClipPath(
-                                        child: InkWell(
-                                          onTap: () => {
-                                            showDialog(
-                                                context: context,
-                                                builder: (BuildContext context) {
-                                                  return viewDialog(
-                                                      userID: taskGetAllRequestModel.userID.toString(),
-                                                      taskID: task.id,
-                                                      title: task.title,
-                                                      description: task.description,
-                                                      status: task.status.toString(),
-                                                      dueDate: date,
-                                                      startTime: task.startTime,
-                                                      endTime: task.endTime,
-                                                      prioritize: task.prioritize);
-                                                })
-                                          },
-                                          onLongPress: () => {
-                                            if (task.status != 'Complete')
-                                              {
-                                                _updateDataTask(task.id, task.prioritize == true ? false : true),
-                                                setState(() {
-                                                  _selectedTaskId = task.id;
-                                                  task.prioritize = !task.prioritize;
-                                                  isPrio = task.prioritize;
-                                                })
-                                              }
-                                            else
-                                              {
-                                                Fluttertoast.showToast(
-                                                  msg: "Task is already Completed",
-                                                  backgroundColor: Color(0xFF202342),
-                                                  textColor: Color(0xFFE4EBF8),
+                            // backgroundColor: color,
+                            elevation: 1,
+                            padding: EdgeInsets.symmetric(horizontal: 15.0),
+                            backgroundColor: Color(0xFF577399),
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 15,
+                  ),
+                  Container(
+                    margin: EdgeInsets.zero,
+                    padding: EdgeInsets.zero,
+                    width: double.infinity,
+                    height: MediaQuery.of(context).size.height - 223,
+                    // color: Colors.white,
+                    child: FutureBuilder<List<dynamic>>(
+                      builder: (context, snapshot) {
+                        this.lengthList = _tasks.length;
+                        return _tasks.length != 0
+                            ? RefreshIndicator(
+                                color: Theme.of(context).primaryColor,
+                                onRefresh: () {
+                                  return _getData(params);
+                                },
+                                child: GroupedListView<dynamic, String>(
+                                  physics: AlwaysScrollableScrollPhysics(),
+                                  padding: EdgeInsets.zero,
+                                  elements: _tasks,
+                                  groupBy: (task) => formatter.format(task.dueDate),
+                                  groupComparator: (value1, value2) {
+                                    if (value1 == strDateNow) {
+                                      return 1; // Today's date is first
+                                    }
+                                    if (value2 == strDateNow) {
+                                      return -1; // Today's date is second
+                                    }
+                                    return value2.compareTo(value1); // Sort by descending date order
+                                  },
+                                  itemComparator: (item1, item2) => item1.title.compareTo(item2.title),
+                                  order: GroupedListOrder.DESC,
+                                  useStickyGroupSeparators: false,
+                                  controller: scrollController,
+                                  groupSeparatorBuilder: (String value) => Padding(
+                                    padding: const EdgeInsets.fromLTRB(15.0, 8.0, 15.0, 8.0),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        if (value == strDateNow) ...[
+                                          Text(
+                                            'Today',
+                                            textAlign: TextAlign.center,
+                                            style: headerTextStyle,
+                                          ),
+                                          Text(
+                                            value,
+                                            textAlign: TextAlign.center,
+                                            style: headerSubTextStyle,
+                                          ),
+                                        ],
+                                        if (value != strDateNow)
+                                          Text(
+                                            value,
+                                            textAlign: TextAlign.center,
+                                            style: headerSubTextStyle,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  indexedItemBuilder: (c, task, count) {
+                                    String date = formatter.format(task.dueDate);
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 8.5, horizontal: 15.0),
+                                      child: Dismissible(
+                                        key: Key(task.id.toString()),
+                                        direction: DismissDirection.endToStart,
+                                        child: Card(
+                                          margin: EdgeInsets.zero,
+                                          child: ClipPath(
+                                            child: InkWell(
+                                              onTap: () => {
+                                                showDialog(
+                                                    context: context,
+                                                    builder: (BuildContext context) {
+                                                      return viewDialog(
+                                                          userID: taskGetAllRequestModel.userID.toString(),
+                                                          taskID: task.id,
+                                                          title: task.title,
+                                                          description: task.description,
+                                                          status: task.status.toString(),
+                                                          dueDate: date,
+                                                          startTime: task.startTime,
+                                                          endTime: task.endTime,
+                                                          prioritize: task.prioritize);
+                                                    })
+                                              },
+                                              onLongPress: () => {
+                                                if (task.status != 'Complete')
+                                                  {
+                                                    _updateDataTask(task.id, task.prioritize == true ? false : true),
+                                                    setState(() {
+                                                      _selectedTaskId = task.id;
+                                                      task.prioritize = !task.prioritize;
+                                                      isPrio = task.prioritize;
+                                                    })
+                                                  }
+                                                else
+                                                  {
+                                                    Fluttertoast.showToast(
+                                                      msg: "Task is already Completed",
+                                                      backgroundColor: Color(0xFF202342),
+                                                      textColor: Color(0xFFE4EBF8),
+                                                    ),
+                                                  }
+                                              },
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  border: Border(
+                                                    left: task.id == _selectedTaskId
+                                                        ? isPrio
+                                                            ? BorderSide(color: Color(0xFF21E6C1), width: 8)
+                                                            : BorderSide()
+                                                        : task.prioritize
+                                                            ? BorderSide(color: Color(0xFF21E6C1), width: 8)
+                                                            : BorderSide(),
+                                                  ),
                                                 ),
-                                              }
-                                          },
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              border: Border(
-                                                left: task.id == _selectedTaskId
-                                                    ? isPrio
-                                                        ? BorderSide(color: Color(0xFF21E6C1), width: 8)
-                                                        : BorderSide()
-                                                    : task.prioritize
-                                                        ? BorderSide(color: Color(0xFF21E6C1), width: 8)
-                                                        : BorderSide(),
+                                                child: ListTile(
+                                                  title: Text(
+                                                    task.title,
+                                                    style: cardTitleTextStyle,
+                                                  ),
+                                                  subtitle: Text(
+                                                    date,
+                                                  ),
+                                                  tileColor: Color(0xFFE4EBF8),
+                                                ),
                                               ),
-                                            ),
-                                            child: ListTile(
-                                              title: Text(
-                                                task.title,
-                                                style: cardTitleTextStyle,
-                                              ),
-                                              subtitle: Text(
-                                                date,
-                                              ),
-                                              tileColor: Color(0xFFE4EBF8),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    ),
-                                    background: Container(
-                                      decoration: BoxDecoration(
-                                        color: Color(0xFF21E6C1),
-                                      ),
-                                    ),
-                                    onDismissed: (direction) {
-                                      _tasks.remove(task);
-                                      setState(() {
-                                        if (_tasks.length <= 5) {
-                                          setState(
-                                            () {
-                                              _isVisible = true;
-                                            },
-                                          );
-                                        }
-                                      });
-                                    },
-                                    confirmDismiss: (DismissDirection direction) async {
-                                      return await showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return confirmDialog(
-                                              userID: taskGetAllRequestModel.userID.toString(),
-                                              taskID: task.id,
-                                              title: task.title,
-                                              status: task.status.toString(),
-                                              dueDate: date,
-                                              startTime: task.startTime,
-                                              endTime: task.endTime,
-                                              prioritize: task.prioritize);
+                                        background: Container(
+                                          decoration: BoxDecoration(
+                                            color: Color(0xFF21E6C1),
+                                          ),
+                                        ),
+                                        onDismissed: (direction) {
+                                          _tasks.remove(task);
+                                          setState(() {
+                                            if (_tasks.length <= 5) {
+                                              setState(
+                                                () {
+                                                  _isVisible = true;
+                                                },
+                                              );
+                                            }
+                                          });
                                         },
-                                      ).then((value) {
-                                        if (value is bool) {
-                                          if (value == true) {
-                                            _updateData(task.id, 'Complete');
-                                          }
-                                          return value;
-                                        }
-                                        if (value is String) {
-                                          return true;
-                                        }
-                                      });
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
-                          )
-                        : isEmpty == false
-                            ? Center(
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE4EBF8)),
-                                  backgroundColor: Theme.of(context).primaryColor,
+                                        confirmDismiss: (DismissDirection direction) async {
+                                          return await showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return confirmDialog(
+                                                  userID: taskGetAllRequestModel.userID.toString(),
+                                                  taskID: task.id,
+                                                  title: task.title,
+                                                  status: task.status.toString(),
+                                                  dueDate: date,
+                                                  startTime: task.startTime,
+                                                  endTime: task.endTime,
+                                                  prioritize: task.prioritize);
+                                            },
+                                          ).then((value) {
+                                            if (value is bool) {
+                                              if (value == true) {
+                                                _updateData(task.id, 'Complete');
+                                              }
+                                              return value;
+                                            }
+                                            if (value is String) {
+                                              return true;
+                                            }
+                                          });
+                                        },
+                                      ),
+                                    );
+                                  },
                                 ),
                               )
-                            : Center(
-                                child: Text(
-                                'No Incomplete Task',
-                                style: headerTextStyle,
-                              ));
-                  }),
-                )
-              ],
+                            : isEmpty == false
+                                ? Center(
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE4EBF8)),
+                                      backgroundColor: Theme.of(context).primaryColor,
+                                    ),
+                                  )
+                                : Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          defaultChoiceIndex == 0
+                                              ? 'No Pending Task'
+                                              : defaultChoiceIndex == 1
+                                                  ? 'No Prioritized Task'
+                                                  : defaultChoiceIndex == 2
+                                                      ? 'No Completed Task'
+                                                      : '',
+                                          style: headerTextStyle,
+                                        ),
+                                        if (message == '"error": "Connection Timed out. Please Try again"' || message.contains('Connection Timed out') || message.compareTo('"error": "Connection Timed out. Please Try again"') == 0) ...[
+                                          SizedBox(
+                                            height: 20,
+                                          ),
+                                          ElevatedButton(
+                                              style: elevatedBtnFilled,
+                                              onPressed: () async {
+                                                _getData(params);
+                                              },
+                                              child: Text(style: btnTextStyleDark, 'Retry')),
+                                          SizedBox(
+                                            height: 80,
+                                          ),
+                                        ]
+                                      ],
+                                    ),
+                                  );
+                      },
+                    ),
+                  )
+                ],
+              ),
+            ),
+            floatingActionButton: Visibility(
+              visible: _isVisible,
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CreateTask()));
+                },
+                child: Icon(
+                  Icons.add,
+                ),
+                foregroundColor: Color(0xFFE4EBF8),
+                backgroundColor: Theme.of(context).primaryColor,
+              ),
             ),
           ),
-          floatingActionButton: Visibility(
-            visible: _isVisible,
-            child: FloatingActionButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CreateTask()));
-              },
-              child: Icon(
-                Icons.add,
-              ),
-              foregroundColor: Color(0xFFE4EBF8),
-              backgroundColor: Theme.of(context).primaryColor,
-            ),
-          ),
-        ),
-        Container(
-            height: 120,
-            child: AppBar(
-              leading: Image.asset(
-                'assets/app_ico_foreground.png',
-                height: 100,
-                width: 100,
-              ),
-              title: Text(
-                "Task Tracker",
-                style: headerTextStyle,
-              ),
-              actions: [
-                PopupMenuButton<int>(
-                  icon: Icon(
-                    Icons.menu_rounded,
+          Container(
+              height: 120,
+              child: AppBar(
+                leading: Image.asset(
+                  'assets/app_ico_foreground.png',
+                  height: 100,
+                  width: 100,
+                ),
+                title: Text(
+                  "Task Tracker",
+                  style: headerTextStyle,
+                ),
+                actions: [
+                  PopupMenuButton<int>(
+                    icon: Icon(
+                      Icons.menu_rounded,
+                      color: Color(0xFFE4EBF8),
+                    ),
                     color: Color(0xFFE4EBF8),
-                  ),
-                  color: Color(0xFFE4EBF8),
-                  itemBuilder: (context) => [
-                    PopupMenuItem<int>(
-                      value: 0,
-                      child: Text('Account'),
-                    ),
-                    // PopupMenuItem<int>(
-                    //   value: 1,
-                    //   child: Text('About'),
-                    // ),
-                    // PopupMenuItem<int>(
-                    //   value: 3,
-                    //   //enabled: false,
-                    //   child: new Container(width: 95, child: Text('App version')),
-                    // ),
-                    PopupMenuDivider(),
-                    PopupMenuItem<int>(
-                      value: 2,
-                      child: Row(
-                        children: [
-                          Icon(Icons.logout, color: Color(0xFFFD5066)),
-                          const SizedBox(
-                            width: 7,
-                          ),
-                          Text(
-                            "Logout",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFFD5066),
-                            ),
-                          )
-                        ],
+                    itemBuilder: (context) => [
+                      PopupMenuItem<int>(
+                        value: 0,
+                        child: Text('Account'),
                       ),
-                    ),
-                  ],
-                  onSelected: (item) => selectedItem(context, item),
+                      // PopupMenuItem<int>(
+                      //   value: 1,
+                      //   child: Text('About'),
+                      // ),
+                      // PopupMenuItem<int>(
+                      //   value: 3,
+                      //   //enabled: false,
+                      //   child: new Container(width: 95, child: Text('App version')),
+                      // ),
+                      PopupMenuDivider(),
+                      PopupMenuItem<int>(
+                        value: 2,
+                        child: Row(
+                          children: [
+                            Icon(Icons.logout, color: Color(0xFFFD5066)),
+                            const SizedBox(
+                              width: 7,
+                            ),
+                            Text(
+                              "Logout",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFFD5066),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                    onSelected: (item) => selectedItem(context, item),
+                  ),
+                ],
+              )),
+          Container(),
+          Positioned(
+            top: 90.0,
+            left: 24.0,
+            right: 24.0,
+            child: AppBar(
+              backgroundColor: Color(0xFFE4EBF8),
+              leading: Icon(Icons.search, color: Color(0xFF021632)),
+              primary: false,
+              title: TextField(decoration: InputDecoration(hintText: "Search", border: InputBorder.none, hintStyle: TextStyle(color: Colors.grey))),
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.close_rounded, color: Color(0xFF021632)),
+                  onPressed: () {},
                 ),
               ],
-            )),
-        Container(),
-        Positioned(
-          top: 90.0,
-          left: 24.0,
-          right: 24.0,
-          child: AppBar(
-            backgroundColor: Color(0xFFE4EBF8),
-            leading: Icon(Icons.search, color: Color(0xFF021632)),
-            primary: false,
-            title: TextField(decoration: InputDecoration(hintText: "Search", border: InputBorder.none, hintStyle: TextStyle(color: Colors.grey))),
-            actions: <Widget>[
-              IconButton(
-                icon: Icon(Icons.close_rounded, color: Color(0xFF021632)),
-                onPressed: () {},
-              ),
-            ],
-            elevation: 2,
+              elevation: 2,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
