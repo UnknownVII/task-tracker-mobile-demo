@@ -27,6 +27,11 @@ final TextStyle cardTitleTextStyle = TextStyle(
   fontSize: 16,
   fontWeight: FontWeight.w900,
 );
+final TextStyle cardSubTitleTextStyle = TextStyle(
+  color: Color(0xFF021632),
+  fontSize: 12,
+  fontWeight: FontWeight.w900,
+);
 
 final TextStyle headerTextStyleDark = TextStyle(
   color: Color(0xFF021632),

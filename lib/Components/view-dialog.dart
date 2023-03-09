@@ -1,29 +1,30 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:task_tracker_mobile_demo/Screens/updateTask.dart';
 import 'package:task_tracker_mobile_demo/Utilities/check_login.dart';
 import 'alert-dialog.dart';
 
-Future<void> _editData(String taskID) async {
-  List<dynamic> data = await deleteTaskStatus(taskID);
-  String message = "";
-  if (data.isNotEmpty) {
-    message = data[0];
-  }
-  if (message.isNotEmpty) {
-    Fluttertoast.showToast(
-      msg: message,
-      backgroundColor: Color(0xFF202342),
-      textColor: Color(0xFFE4EBF8),
-    );
-  } else {
-    Fluttertoast.showToast(
-      msg: 'Something went wrong',
-      backgroundColor: Color(0xFF202342),
-      textColor: Color(0xFFE4EBF8),
-    );
-  }
-}
+// Future<void> _editData(String taskID) async {
+//   List<dynamic> data = await deleteTaskStatus(taskID);
+//   String message = "";
+//   if (data.isNotEmpty) {
+//     message = data[0];
+//   }
+//   if (message.isNotEmpty) {
+//     Fluttertoast.showToast(
+//       msg: message,
+//       backgroundColor: Color(0xFF202342),
+//       textColor: Color(0xFFE4EBF8),
+//     );
+//   } else {
+//     Fluttertoast.showToast(
+//       msg: 'Something went wrong',
+//       backgroundColor: Color(0xFF202342),
+//       textColor: Color(0xFFE4EBF8),
+//     );
+//   }
+// }
 
 class viewDialog extends StatelessWidget {
   final String userID;
@@ -55,7 +56,9 @@ class viewDialog extends StatelessWidget {
       filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
       child: new AlertDialog(
         shape: Border(
-          top: prioritize == true ? BorderSide(color: Color(0xFF21E6C1), width: 10) : BorderSide(),
+          top: prioritize == true
+              ? BorderSide(color: Color(0xFF21E6C1), width: 10)
+              : BorderSide(),
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -80,8 +83,13 @@ class viewDialog extends StatelessWidget {
                       );
                     }).then((value) {
                   if (value == true) {
-                    _editData(taskID);
-                    Navigator.of(context).pop('Deleted');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            UpdateTask(taskID: taskID.toString()),
+                      ),
+                    );
                   }
                 })
               },
@@ -138,7 +146,8 @@ class viewDialog extends StatelessWidget {
               SizedBox(
                 height: 15,
               ),
-              new Text('Description:',
+              new Text(
+                'Description:',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               SizedBox(
@@ -157,7 +166,9 @@ class viewDialog extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
-              child: const Text("OKAY", style: TextStyle(color: Color(0xFF021632), fontWeight: FontWeight.w900))),
+              child: const Text("OKAY",
+                  style: TextStyle(
+                      color: Color(0xFF021632), fontWeight: FontWeight.w900))),
         ],
       ),
     );

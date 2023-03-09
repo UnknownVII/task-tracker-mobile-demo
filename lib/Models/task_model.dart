@@ -121,6 +121,29 @@ class TaskGetAllRequestModel {
     return map;
   }
 }
+
+class TaskGetSpecificRequestModel {
+  String userID;
+  String taskID;
+  String token;
+
+
+  TaskGetSpecificRequestModel({
+    required this.userID,
+    required this.taskID,
+    required this.token,
+  });
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> map = {
+      'user_id': userID.trim() ?? null,
+      'token': taskID.trim() ?? null,
+      'params': token.trim() ?? null,
+    };
+    return map;
+  }
+}
+
 class TaskDeleteRequestModel {
   String userID;
   String taskID;
@@ -149,7 +172,7 @@ class TaskUpdateRequestModel {
 
   String? title;
   String? description;
-  DateTime? dueDate;
+  String? dueDate;
 
   String? startTime;
   String? endTime;

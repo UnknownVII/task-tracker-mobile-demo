@@ -7,10 +7,12 @@ import 'package:task_tracker_mobile_demo/Components/alert-dialog.dart';
 import 'package:task_tracker_mobile_demo/Components/text-input-field.dart';
 import 'package:task_tracker_mobile_demo/Models/login_model.dart';
 import 'package:task_tracker_mobile_demo/Styles/text-styles.dart';
+import 'package:task_tracker_mobile_demo/Utilities/check_account.dart';
 
 import '../../Services/api_services.dart';
 import '../../Styles/button-styles.dart';
 import '../../Utilities/progress_hud.dart';
+import '../../Utilities/validators.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -26,6 +28,8 @@ class _LoginState extends State<Login> {
   bool hidePassword = true;
   FocusNode emailFocus = new FocusNode();
   FocusNode passwordFocus = new FocusNode();
+  var emailController = TextEditingController();
+  var passwordController = TextEditingController();
 
   late LoginRequestModel requestModel;
   bool isApiCallProcess = false;
@@ -50,6 +54,42 @@ class _LoginState extends State<Login> {
 
     super.dispose();
   }
+  Future<void> _loginAccount() async {
+    List<dynamic> data = await loginAccount(
+      emailController.text.toString(),
+      passwordController.text.toString(),
+    );
+    String message = "";
+    if (data.isNotEmpty) {
+      message = data[0];
+    }
+    if (message.isNotEmpty) {
+      setState(
+            () {
+          isApiCallProcess = false;
+          Fluttertoast.showToast(
+            msg: message,
+            backgroundColor: Color(0xFF202342),
+            textColor: Color(0xFFE4EBF8),
+          );
+          if(message == '"message": "Logged in successfully"' || message.contains("Logged in successfully") || message.compareTo('"message": "Logged in successfully"') == 0){
+            globalFormKey.currentState!.reset();
+            Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
+          }
+        },
+      );
+    } else {
+      setState(
+            () {
+          Fluttertoast.showToast(
+            msg: 'Something went wrong',
+            backgroundColor: Color(0xFF202342),
+            textColor: Color(0xFFE4EBF8),
+          );
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +101,6 @@ class _LoginState extends State<Login> {
   }
 
   Widget buildUI(BuildContext context) {
-    Timer _timer;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -116,8 +155,8 @@ class _LoginState extends State<Login> {
                               keyboardType: TextInputType.emailAddress,
                               textCapitalization: TextCapitalization.none,
                               keyboardAction: TextInputAction.next,
-                              onSaved: (input) => requestModel.email = input!,
-                              validator: (input) => !input!.contains("@") ? "Email Address invalid" : null,
+                              onSaved: (input) => emailController.text = input!,
+                              validator: (input) => validateEmail(input!),
                               label: 'Email',
                               prefix: Icon(Icons.email, color: Theme.of(context).primaryColor),
                             ),
@@ -132,8 +171,8 @@ class _LoginState extends State<Login> {
                               textCapitalization: TextCapitalization.none,
                               keyboardAction: TextInputAction.done,
                               obscure: hidePassword,
-                              onSaved: (input) => requestModel.password = input!,
-                              validator: (input) => input!.length < 6 ? "Password is less than 6 characters" : null,
+                              onSaved: (input) => passwordController.text = input!,
+                              validator: (input) => validatePassword(input!),
                               label: 'Password',
                               prefix: Icon(Icons.lock, color: Theme.of(context).primaryColor),
                               suffix: IconButton(
@@ -158,41 +197,13 @@ class _LoginState extends State<Login> {
                     style: elevatedBtnFilled,
                     onPressed: () async {
                       FocusManager.instance.primaryFocus?.unfocus();
-                      final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-                      if (validateAndSave()) {
-                        setState(() {
-                          isApiCallProcess = true;
-                        });
-                        LoginService apiService = new LoginService();
-                        apiService.login(requestModel).then(
-                          (value) {
-                            setState(() {
-                              isApiCallProcess = false;
-                            });
-                            if (value.authToken.isNotEmpty) {
-                              sharedPreferences.setString('data', requestModel.toJson().toString());
-                              sharedPreferences.setString('authKey', value.authToken.toString());
-                              sharedPreferences.setString('currentUser', value.message.toString());
-                              sharedPreferences.setString('currentEmail', requestModel.email.toString());
-                              sharedPreferences.setString('userID', value.userID.toString());
-                              globalFormKey.currentState!.reset();
-                              Fluttertoast.showToast(msg: "Login Successful", backgroundColor: Color(0xFF071E3D), textColor: Color(0xFFE4EBF8), toastLength: Toast.LENGTH_SHORT);
-                              Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
-                            } else {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return alertDialog(
-                                    header: "Login",
-                                    content: value.error,
-                                    choice: false,
-                                  );
-                                },
-                              );
-                            }
-                          },
-                        );
-                      }
+                      setState(() {
+                        hidePassword = true;
+                        isApiCallProcess = true;
+                        if(validateAndSave()){
+                          _loginAccount();
+                        }
+                      });
                     },
                     child: Text(style: btnTextStyleDark, 'Login')),
               ],
