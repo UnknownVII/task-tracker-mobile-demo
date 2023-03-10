@@ -38,3 +38,15 @@ final TextStyle headerTextStyleDark = TextStyle(
   fontSize: 24,
   fontWeight: FontWeight.w900,
 );
+
+final TextStyle headerTextStyleDarkLite = TextStyle(
+  color: Color(0xFF021632),
+  fontSize: 18,
+);
+
+final TextStyle underlinedTextStyleDark = TextStyle(
+  fontWeight: FontWeight.w700,
+  fontSize: 18,
+  decoration: TextDecoration.underline,
+  color: Color(0xFF021632),
+);

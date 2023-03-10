@@ -7,9 +7,9 @@ import 'package:task_tracker_mobile_demo/Components/alert-dialog.dart';
 import 'package:task_tracker_mobile_demo/Components/text-input-field.dart';
 import 'package:task_tracker_mobile_demo/Models/login_model.dart';
 import 'package:task_tracker_mobile_demo/Styles/text-styles.dart';
-import 'package:task_tracker_mobile_demo/Utilities/check_account.dart';
+import 'package:task_tracker_mobile_demo/Utilities/api_account.dart';
 
-import '../../Services/api_services.dart';
+import '../../Services/user_services.dart';
 import '../../Styles/button-styles.dart';
 import '../../Utilities/progress_hud.dart';
 import '../../Utilities/validators.dart';
@@ -172,7 +172,7 @@ class _LoginState extends State<Login> {
                               keyboardAction: TextInputAction.done,
                               obscure: hidePassword,
                               onSaved: (input) => passwordController.text = input!,
-                              validator: (input) => validatePassword(input!),
+                              validator: (input) => validatePasswordLogin(input!),
                               label: 'Password',
                               prefix: Icon(Icons.lock, color: Theme.of(context).primaryColor),
                               suffix: IconButton(
@@ -199,8 +199,8 @@ class _LoginState extends State<Login> {
                       FocusManager.instance.primaryFocus?.unfocus();
                       setState(() {
                         hidePassword = true;
-                        isApiCallProcess = true;
                         if(validateAndSave()){
+                          isApiCallProcess = true;
                           _loginAccount();
                         }
                       });

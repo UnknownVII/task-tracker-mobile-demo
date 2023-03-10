@@ -1,4 +1,3 @@
-
 import 'package:intl/intl.dart';
 
 String? validateName(String? value) {
@@ -41,6 +40,15 @@ String? validatePassword(String? value) {
   }
   return null;
 }
+
+String? validatePasswordLogin(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Password cannot be empty';
+  }
+  return null;
+}
+
+
 
 String? validateTitle(String? value) {
   if (value == null || value.isEmpty) {

@@ -1,30 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:task_tracker_mobile_demo/Screens/updateTask.dart';
-import 'package:task_tracker_mobile_demo/Utilities/check_login.dart';
+import 'package:task_tracker_mobile_demo/Screens/Home/updateTask.dart';
 import 'alert-dialog.dart';
-
-// Future<void> _editData(String taskID) async {
-//   List<dynamic> data = await deleteTaskStatus(taskID);
-//   String message = "";
-//   if (data.isNotEmpty) {
-//     message = data[0];
-//   }
-//   if (message.isNotEmpty) {
-//     Fluttertoast.showToast(
-//       msg: message,
-//       backgroundColor: Color(0xFF202342),
-//       textColor: Color(0xFFE4EBF8),
-//     );
-//   } else {
-//     Fluttertoast.showToast(
-//       msg: 'Something went wrong',
-//       backgroundColor: Color(0xFF202342),
-//       textColor: Color(0xFFE4EBF8),
-//     );
-//   }
-// }
 
 class viewDialog extends StatelessWidget {
   final String userID;
@@ -36,6 +14,7 @@ class viewDialog extends StatelessWidget {
   final String startTime;
   final String endTime;
   final bool prioritize;
+  final int indexPosition;
 
   const viewDialog({
     Key? key,
@@ -47,6 +26,7 @@ class viewDialog extends StatelessWidget {
     required this.startTime,
     required this.endTime,
     required this.prioritize,
+    required this.indexPosition,
     this.status,
   }) : super(key: key);
 
@@ -56,9 +36,7 @@ class viewDialog extends StatelessWidget {
       filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
       child: new AlertDialog(
         shape: Border(
-          top: prioritize == true
-              ? BorderSide(color: Color(0xFF21E6C1), width: 10)
-              : BorderSide(),
+          top: prioritize == true ? BorderSide(color: Color(0xFF21E6C1), width: 10) : BorderSide(),
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -72,26 +50,35 @@ class viewDialog extends StatelessWidget {
             ),
             IconButton(
               onPressed: () => {
-                showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return alertDialog(
-                        header: "Edit",
-                        content: 'You will be editing $title'
-                            '${prioritize == true ? ",${status == 'Incomplete' ? " it is set as Prioritize" : " it is Completed"}" : "${status == 'Incomplete' ? "" : ", it is Completed"}"}',
-                        choice: true,
-                      );
-                    }).then((value) {
-                  if (value == true) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            UpdateTask(taskID: taskID.toString()),
-                      ),
-                    );
+                if (indexPosition != 2)
+                  {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return alertDialog(
+                          header: "Edit",
+                          content: 'You will be editing $title'
+                              '${prioritize == true ? ",${status == 'Incomplete' ? " it is set as Prioritize" : " it is Completed"}" : "${status == 'Incomplete' ? "" : ", it is Completed"}"}',
+                          choice: true,
+                        );
+                      },
+                    ).then(
+                      (value) {
+                        if (value == true) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UpdateTask(taskID: taskID.toString()),
+                            ),
+                          );
+                        }
+                      },
+                    )
                   }
-                })
+                else
+                  {
+                    Fluttertoast.showToast(msg: 'Cannot Edit Completed Task'),
+                  }
               },
               icon: Icon(
                 Icons.edit,
@@ -166,9 +153,7 @@ class viewDialog extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
-              child: const Text("OKAY",
-                  style: TextStyle(
-                      color: Color(0xFF021632), fontWeight: FontWeight.w900))),
+              child: const Text("OKAY", style: TextStyle(color: Color(0xFF021632), fontWeight: FontWeight.w900))),
         ],
       ),
     );

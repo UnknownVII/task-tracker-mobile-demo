@@ -31,7 +31,7 @@ class alertDialog extends StatelessWidget {
             ),
           ],
         ),
-        content: new Text(content),
+        content: new Text(content, style: TextStyle(height: 1.8),),
         actions: <Widget>[
             TextButton(
                 onPressed: () {

@@ -6,12 +6,12 @@ import 'package:task_tracker_mobile_demo/Components/date-picker.dart';
 import 'package:task_tracker_mobile_demo/Components/flutter-switch.dart';
 import 'package:task_tracker_mobile_demo/Components/time-picker.dart';
 import 'package:task_tracker_mobile_demo/Styles/text-styles.dart';
-import 'package:task_tracker_mobile_demo/Utilities/check_login.dart';
+import 'package:task_tracker_mobile_demo/Utilities/api_userTask.dart';
 import 'package:task_tracker_mobile_demo/Utilities/validators.dart';
-import '../Components/text-input-field.dart';
-import '../Models/task_model.dart';
-import '../Styles/button-styles.dart';
-import '../Utilities/progress_hud.dart';
+import '../../Components/text-input-field.dart';
+import '../../Models/task_model.dart';
+import '../../Styles/button-styles.dart';
+import '../../Utilities/progress_hud.dart';
 
 class UpdateTask extends StatefulWidget {
   final String taskID;
@@ -68,7 +68,6 @@ class _UpdateTaskState extends State<UpdateTask> {
     if (message.isNotEmpty) {
       setState(
         () {
-
           Fluttertoast.showToast(
             msg: message,
             backgroundColor: Color(0xFF202342),
@@ -86,8 +85,7 @@ class _UpdateTaskState extends State<UpdateTask> {
           startController.text = _tasks[0].startTime.toString();
           endController.text = _tasks[0].endTime.toString();
           isPrioritized = _tasks[0].prioritize;
-          isTimed =
-              (_tasks[0].startTime.isNotEmpty && _tasks[0].endTime.isNotEmpty);
+          isTimed = (_tasks[0].startTime.isNotEmpty && _tasks[0].endTime.isNotEmpty);
           isApiCallProcess = false;
           Fluttertoast.showToast(
             msg: 'Specific task fetched',
@@ -129,13 +127,7 @@ class _UpdateTaskState extends State<UpdateTask> {
     isApiCallProcess = true;
     FocusManager.instance.primaryFocus?.unfocus();
     List<dynamic> data = await updateSpecificTask(
-        titleController.text.toString(),
-        taskID,
-        descriptionController.text.toString(),
-        dateController.text.toString(),
-        startController.text.toString(),
-        endController.text.toString(),
-        isPrioritized);
+        titleController.text.toString(), taskID, descriptionController.text.toString(), dateController.text.toString(), startController.text.toString(), endController.text.toString(), isPrioritized);
     String message = "";
 
     if (data.isNotEmpty) {
@@ -143,7 +135,8 @@ class _UpdateTaskState extends State<UpdateTask> {
     }
     if (message.isNotEmpty) {
       setState(
-        () {   print("hello");
+        () {
+          print("hello");
           Fluttertoast.showToast(
             msg: message,
             backgroundColor: Color(0xFF202342),
@@ -184,26 +177,18 @@ class _UpdateTaskState extends State<UpdateTask> {
   Widget buildUI(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        if (titleController.text.isNotEmpty ||
-            descriptionController.text.isNotEmpty ||
-            dateController.text.isNotEmpty ||
-            startController.text.isNotEmpty ||
-            endController.text.isNotEmpty) {
+        if (titleController.text.isNotEmpty || descriptionController.text.isNotEmpty || dateController.text.isNotEmpty || startController.text.isNotEmpty || endController.text.isNotEmpty) {
           showDialog(
               context: context,
               builder: (BuildContext context) {
-                return alertDialog(
-                    content: "You have unsaved changes. Discard changes?",
-                    header: 'Unsaved changes',
-                    choice: true);
+                return alertDialog(content: "You have unsaved changes. Discard changes?", header: 'Unsaved changes', choice: true);
               }).then(
             (value) {
               if (value == null) {
                 return check = false;
               }
               if (value) {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/home', (_) => false);
+                Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
               } else {
                 return check = false;
               }
@@ -227,17 +212,14 @@ class _UpdateTaskState extends State<UpdateTask> {
             actions: [
               if (isTimed == true)
                 TextButton(
-                    onPressed: (titleController.text.isNotEmpty &&
-                            descriptionController.text.isNotEmpty &&
-                            dateController.text.isNotEmpty &&
-                            startController.text.isNotEmpty &&
-                            endController.text.isNotEmpty)
-                        ? () {
-                            if (validateAndSave()) {
-                              _updateSpecificData(specificID);
-                            }
-                          }
-                        : null,
+                    onPressed:
+                        (titleController.text.isNotEmpty && descriptionController.text.isNotEmpty && dateController.text.isNotEmpty && startController.text.isNotEmpty && endController.text.isNotEmpty)
+                            ? () {
+                                if (validateAndSave()) {
+                                  _updateSpecificData(specificID);
+                                }
+                              }
+                            : null,
                     child: Text(
                         style: (titleController.text.isNotEmpty &&
                                 descriptionController.text.isNotEmpty &&
@@ -249,22 +231,14 @@ class _UpdateTaskState extends State<UpdateTask> {
                         'Save')),
               if (isTimed == false)
                 TextButton(
-                  onPressed: (titleController.text.isNotEmpty &&
-                          descriptionController.text.isNotEmpty &&
-                          dateController.text.isNotEmpty)
+                  onPressed: (titleController.text.isNotEmpty && descriptionController.text.isNotEmpty && dateController.text.isNotEmpty)
                       ? () {
                           if (validateAndSave()) {
                             _updateSpecificData(specificID);
                           }
                         }
                       : null,
-                  child: Text(
-                      style: (titleController.text.isNotEmpty &&
-                              descriptionController.text.isNotEmpty &&
-                              dateController.text.isNotEmpty)
-                          ? btnTextStyleWhite
-                          : btnTextStyleDark,
-                      'Save'),
+                  child: Text(style: (titleController.text.isNotEmpty && descriptionController.text.isNotEmpty && dateController.text.isNotEmpty) ? btnTextStyleWhite : btnTextStyleDark, 'Save'),
                 ),
             ],
           ),
@@ -307,8 +281,7 @@ class _UpdateTaskState extends State<UpdateTask> {
                           textCapitalization: TextCapitalization.sentences,
                           keyboardType: TextInputType.multiline,
                           keyboardAction: TextInputAction.done,
-                          onSaved: (input) =>
-                              descriptionController.text = input!,
+                          onSaved: (input) => descriptionController.text = input!,
                           validator: (input) => validateDescription(input!),
                           label: 'Description',
                           maxLength: 250,
@@ -336,18 +309,14 @@ class _UpdateTaskState extends State<UpdateTask> {
                                 setState(
                                   () {
                                     if (value == false) {
-                                      FocusManager.instance.primaryFocus
-                                          ?.unfocus();
+                                      FocusManager.instance.primaryFocus?.unfocus();
                                     }
                                     if (value != false && value != null) {
-                                      dateController.text =
-                                          formatter.format(value).toString();
+                                      dateController.text = formatter.format(value).toString();
                                       print(formatter.format(value).toString());
                                     }
-                                    if (value == null &&
-                                        dateController.text.isEmpty) {
-                                      Fluttertoast.showToast(
-                                          msg: 'Please select date');
+                                    if (value == null && dateController.text.isEmpty) {
+                                      Fluttertoast.showToast(msg: 'Please select date');
                                     }
                                   },
                                 );
@@ -361,8 +330,7 @@ class _UpdateTaskState extends State<UpdateTask> {
                           onSaved: (input) => dateController.text = input!,
                           validator: (input) => validateDate(input!),
                           label: 'Due date',
-                          prefix: Icon(Icons.calendar_month_rounded,
-                              color: Theme.of(context).primaryColor),
+                          prefix: Icon(Icons.calendar_month_rounded, color: Theme.of(context).primaryColor),
                           suffix: IconButton(
                             onPressed: () {
                               FocusManager.instance.primaryFocus?.unfocus();
@@ -375,27 +343,21 @@ class _UpdateTaskState extends State<UpdateTask> {
                                   setState(
                                     () {
                                       if (value == false) {
-                                        FocusManager.instance.primaryFocus
-                                            ?.unfocus();
+                                        FocusManager.instance.primaryFocus?.unfocus();
                                       }
                                       if (value != false && value != null) {
-                                        dateController.text =
-                                            formatter.format(value).toString();
+                                        dateController.text = formatter.format(value).toString();
                                       }
-                                      if (value == null &&
-                                          dateController.text.isEmpty) {
-                                        Fluttertoast.showToast(
-                                            msg: 'Please select date');
+                                      if (value == null && dateController.text.isEmpty) {
+                                        Fluttertoast.showToast(msg: 'Please select date');
                                       }
                                     },
                                   );
                                 },
                               );
                             },
-                            color:
-                                Theme.of(context).primaryColor.withOpacity(0.5),
-                            icon: Icon(Icons.arrow_drop_down_sharp,
-                                color: Theme.of(context).primaryColor),
+                            color: Theme.of(context).primaryColor.withOpacity(0.5),
+                            icon: Icon(Icons.arrow_drop_down_sharp, color: Theme.of(context).primaryColor),
                           ),
                         ),
                       ),
@@ -420,8 +382,7 @@ class _UpdateTaskState extends State<UpdateTask> {
                                       selectedDate: DateTime.now(),
                                       onDateTimeChanged: (newTime) => setState(
                                         () {
-                                          startController.text =
-                                              timeFormatter.format(newTime);
+                                          startController.text = timeFormatter.format(newTime);
                                           endController.clear();
                                         },
                                       ),
@@ -434,11 +395,9 @@ class _UpdateTaskState extends State<UpdateTask> {
                               keyboardType: TextInputType.datetime,
                               keyboardAction: TextInputAction.done,
                               onSaved: (input) => startController.text = input!,
-                              validator: (input) =>
-                                  isTimed ? validateTime(input!) : null,
+                              validator: (input) => isTimed ? validateTime(input!) : null,
                               label: 'Start',
-                              prefix: Icon(Icons.access_time_filled_rounded,
-                                  color: Theme.of(context).primaryColor),
+                              prefix: Icon(Icons.access_time_filled_rounded, color: Theme.of(context).primaryColor),
                               suffix: IconButton(
                                 onPressed: () {
                                   FocusManager.instance.primaryFocus?.unfocus();
@@ -448,11 +407,9 @@ class _UpdateTaskState extends State<UpdateTask> {
                                       return timePIckerCuper(
                                         isFirst: true,
                                         selectedDate: DateTime.now(),
-                                        onDateTimeChanged: (newTime) =>
-                                            setState(
+                                        onDateTimeChanged: (newTime) => setState(
                                           () {
-                                            startController.text =
-                                                timeFormatter.format(newTime);
+                                            startController.text = timeFormatter.format(newTime);
                                             endController.clear();
                                           },
                                         ),
@@ -460,8 +417,7 @@ class _UpdateTaskState extends State<UpdateTask> {
                                     },
                                   );
                                 },
-                                icon: Icon(Icons.arrow_drop_down_sharp,
-                                    color: Theme.of(context).primaryColor),
+                                icon: Icon(Icons.arrow_drop_down_sharp, color: Theme.of(context).primaryColor),
                               ),
                             ),
                           ),
@@ -478,17 +434,14 @@ class _UpdateTaskState extends State<UpdateTask> {
                                 showDialog(
                                   context: context,
                                   builder: (BuildContext context) {
-                                    String timeString =
-                                        startController.text.toString();
-                                    DateTime parsedTime =
-                                        DateFormat('HH:mm').parse(timeString);
+                                    String timeString = startController.text.toString();
+                                    DateTime parsedTime = DateFormat('HH:mm').parse(timeString);
                                     return timePIckerCuper(
                                       isFirst: false,
                                       selectedDate: parsedTime,
                                       onDateTimeChanged: (newTime) => setState(
                                         () {
-                                          endController.text =
-                                              timeFormatter.format(newTime);
+                                          endController.text = timeFormatter.format(newTime);
                                         },
                                       ),
                                     );
@@ -500,37 +453,30 @@ class _UpdateTaskState extends State<UpdateTask> {
                               keyboardType: TextInputType.datetime,
                               keyboardAction: TextInputAction.done,
                               onSaved: (input) => endController.text = input!,
-                              validator: (input) =>
-                                  isTimed ? validateTime(input!) : null,
+                              validator: (input) => isTimed ? validateTime(input!) : null,
                               label: 'End',
-                              prefix: Icon(Icons.access_time_filled_rounded,
-                                  color: Theme.of(context).primaryColor),
+                              prefix: Icon(Icons.access_time_filled_rounded, color: Theme.of(context).primaryColor),
                               suffix: IconButton(
                                 onPressed: () {
                                   FocusManager.instance.primaryFocus?.unfocus();
                                   showDialog(
                                     context: context,
                                     builder: (BuildContext context) {
-                                      String timeString =
-                                          startController.text.toString();
-                                      DateTime parsedTime =
-                                          DateFormat('HH:mm').parse(timeString);
+                                      String timeString = startController.text.toString();
+                                      DateTime parsedTime = DateFormat('HH:mm').parse(timeString);
                                       return timePIckerCuper(
                                         isFirst: false,
                                         selectedDate: parsedTime,
-                                        onDateTimeChanged: (newTime) =>
-                                            setState(
+                                        onDateTimeChanged: (newTime) => setState(
                                           () {
-                                            endController.text =
-                                                timeFormatter.format(newTime);
+                                            endController.text = timeFormatter.format(newTime);
                                           },
                                         ),
                                       );
                                     },
                                   );
                                 },
-                                icon: Icon(Icons.arrow_drop_down_sharp,
-                                    color: Theme.of(context).primaryColor),
+                                icon: Icon(Icons.arrow_drop_down_sharp, color: Theme.of(context).primaryColor),
                               ),
                             ),
                           ),

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 class ProgressHUD extends StatelessWidget {
@@ -13,22 +15,25 @@ class ProgressHUD extends StatelessWidget {
     List<Widget> widgetList = <Widget>[];
     widgetList.add(child);
     if (inAsyncCall) {
-      final modal = Stack(
-        children: [
-          Opacity(
-            opacity: opacity,
-            child: ModalBarrier(
-              dismissible: false,
-              color: color,
+      final modal = BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+        child: Stack(
+          children: [
+            Opacity(
+              opacity: opacity,
+              child: ModalBarrier(
+                dismissible: false,
+                color: color,
+              ),
             ),
-          ),
-          const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE4EBF8)),
-              backgroundColor: Color(0xFF2E315A),
+            const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE4EBF8)),
+                backgroundColor: Color(0xFF2E315A),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
       widgetList.add(modal);
     }

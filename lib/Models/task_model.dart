@@ -24,6 +24,7 @@ class TaskResponseModel {
     );
   }
 }
+
 class Task {
   Task({
     required this.title,

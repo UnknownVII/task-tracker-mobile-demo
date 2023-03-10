@@ -6,14 +6,14 @@ import 'package:task_tracker_mobile_demo/Components/date-picker.dart';
 import 'package:task_tracker_mobile_demo/Components/flutter-switch.dart';
 import 'package:task_tracker_mobile_demo/Components/time-picker.dart';
 import 'package:task_tracker_mobile_demo/Styles/text-styles.dart';
-import 'package:task_tracker_mobile_demo/Utilities/check_login.dart';
+import 'package:task_tracker_mobile_demo/Utilities/api_userTask.dart';
 import 'package:task_tracker_mobile_demo/Utilities/validators.dart';
-import '../Components/text-input-field.dart';
-import '../Models/task_model.dart';
+import '../../Components/text-input-field.dart';
+import '../../Models/task_model.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 
-import '../Styles/button-styles.dart';
-import '../Utilities/progress_hud.dart';
+import '../../Styles/button-styles.dart';
+import '../../Utilities/progress_hud.dart';
 
 class CreateTask extends StatefulWidget {
   const CreateTask({Key? key}) : super(key: key);
@@ -50,7 +50,7 @@ class _CreateTaskState extends State<CreateTask> {
   @override
   void initState() {
     super.initState();
-
+    isApiCallProcess = false;
     // Start listening to changes.
   }
 
